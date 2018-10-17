@@ -15,9 +15,9 @@ def main():
     rm.newResource(type='printer')
     rm.newResource(type='printer')
     rm.newResource(type='modem')
-    rm.newResource(type='SATA')
-    rm.newResource(type='SATA')
-    rm.showResources()
+    rm.newResource(type='drive')
+    rm.newResource(type='drive')
+    print(rm.getCounts())
 
     pid = 0
     offset = 0

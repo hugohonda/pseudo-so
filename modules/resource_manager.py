@@ -17,7 +17,12 @@ class ResourceManager:
         new = Resource(rid, type)
         self.resources.append(new)
     
-    def showResources(self):
-        print(f'\trid / type / pid / allocated')
+    def getCounts(self):
+        counts = {}
         for resource in self.resources:
-            print(f'{resource.rid}\t{resource.type}\t{resource.pid}\t{resource.allocated}')
+            if resource.type not in counts:
+                counts[resource.type] = 1
+            else:
+                counts[resource.type] = counts[resource.type] + 1
+        return counts
+            
