@@ -1,21 +1,24 @@
 import os
 import sys
+from process_manager import ProcessManager, Process
 
 class Parser:
     def __init__(self):
         self.read_process_file()
-        print("----------------")
         self.read_files_file()
-
 
     def read_process_file(self):
         FILE_PATH = str(os.getcwd()) + '/data/' + 'processes.txt'
-        processes_atributs = []
         with open(FILE_PATH) as data_file:
             for line in data_file:
-                start_time, priority, cpu_time, blocks, printer, scanner, modem, disk = line.split(', ')
-                print(start_time, priority, cpu_time, blocks, 
-                       printer, scanner, modem, disk)
+                start_time, priority, cpu_time, n_blocks, \
+                printer, scanner, modem, disk = line.split(', ')
+                pm = ProcessManager.getInstance()
+                pm.newProcess(
+                                int(start_time), int(priority), int(cpu_time),
+                                int(n_blocks), int(printer), int(scanner),
+                                int(modem), int(disk)
+                )
 
     def read_files_file(self):
         FILE_PATH = str(os.getcwd()) + '/data/' + 'files.txt'
@@ -53,11 +56,9 @@ class Parser:
 
                     operations.append(new_operation)
                 cnt +=1             
-            for f in files:
-                print(f)
-            print("###########")
-            for op in operations:
-                print(op)
+            
+            for p in ProcessManager.getInstance().processes :
+                print(f"P: {p}")
             
 parser = Parser()
 
