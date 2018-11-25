@@ -1,5 +1,5 @@
 class FileSystem:
-    """File system manager from pseudo operating system.
+    """Pseudo OS filesystem manager.
 
     Args:
         filename (`str`) Filename with relative path. The file contains

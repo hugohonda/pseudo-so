@@ -2,7 +2,7 @@ from queue import PriorityQueue, Queue
 
 
 class PriorityEntry:
-    """Class to compare Process order priority order.
+    """Class to compare process priority order.
 
     Args:
         priority (`int`) Process priority.
@@ -17,7 +17,7 @@ class PriorityEntry:
 
 
 class QueueManager(Queue):
-    """Queue manager from pseudo operating system.
+    """Pseudo OS queue manager.
 
     Ready processes queue is the global queue. Real-time processes are
     defined with priority 0 and user processes with 1, 2 and 3. This class
