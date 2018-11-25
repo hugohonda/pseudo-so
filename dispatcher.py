@@ -42,7 +42,7 @@ def main(files):
     while processes or not pm.empty():
         print(f'---- Pseudo OS timer: {counter}')
         # execute process when boot time arrive
-        if len(processes) and processes[0]['boot_time'] == counter:
+        if len(processes) and processes[0]['boot_time'] <= counter:
             curr_proc = processes.pop(0)  # next process
             print(f'dispatcher =>')
             pm.new_process(curr_proc)  # creates process
