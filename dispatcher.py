@@ -1,4 +1,5 @@
 from modules import ProcessManager, process_parser, read_files_file
+from modules.resource_manager import ResourceManager
 
 import time
 import sys
@@ -32,6 +33,8 @@ def main(input_files):
         sys.exit()
     # init Disk
     n_blocks, files, operations = read_files_file(input_files[1])
+    # init resources
+    
 
     # OS BOOT TIME ---------------
     # read processes to execute
@@ -57,13 +60,8 @@ def main(input_files):
     # fs = FileSystem(files[1])
     # fs.start()
 
-    # TODO : start resources manager
-    # rm.newResource(type='scanner')
-    # rm.newResource(type='printer')
-    # rm.newResource(type='printer')
-    # rm.newResource(type='modem')
-    # rm.newResource(type='drive')
-    # rm.newResource(type='drive')
+    ResourceManager()
+    
 
 
 if __name__ == '__main__':
