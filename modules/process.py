@@ -1,8 +1,7 @@
 from .memory import MemoryManager
 from .queues import QueueManager
 
-EMPTY_PROCESS = {'proc': None, 'pc': 0}
-
+import time
 
 class Process:
     """Process entity.
@@ -19,6 +18,8 @@ class Process:
             setattr(self, k, int(v))
         self.offset = offset
         self.pid = pid
+        self.pc = self.boot_time + self.cpu_time  # process execution counter
+        self.started = False
 
     def __str__(self):
         return (
@@ -30,8 +31,7 @@ class Process:
             f'\tprinters: {self.printer_id}\n'+
             f'\tscanners: {self.scanner_req}\n'+
             f'\tmodems: {self.modem_req}\n'+
-            f'\tdrivers: {self.disk_id}\n\n'+
-            f'process {self.pid} =>'
+            f'\tdrivers: {self.disk_id}\n'
         )
 
 
@@ -44,7 +44,7 @@ class ProcessManager:
         self.curr_pid = 0
         self.mem_m = MemoryManager()
         self.q_m = QueueManager()
-        self.curr_proc_context = dict(EMPTY_PROCESS)
+        self.curr_proc = None
 
     def new_process(self, process_desc):
         """Try to creates a process.
@@ -69,7 +69,7 @@ class ProcessManager:
     def empty(self):
         """Check if there are no process running.
         """
-        return self.curr_proc_context['proc'] is None
+        return self.curr_proc is None
 
     def next(self):
         """Simulate next process.
@@ -78,28 +78,46 @@ class ProcessManager:
             ``True`` if a process execute with success, ``False`` if some error
             occurred during execution or there are no process to execute.
         """
-        if self.curr_proc_context['proc'] is None:
-            # select a process from ready processes queue
-            curr_proc = self.q_m.get()
-            if not curr_proc:
+        if self.curr_proc is None:
+            if self.next_process() is None:
                 return False
-
-            self.curr_proc_context['proc'] = curr_proc
-            self.curr_proc_context['pc'] = curr_proc.boot_time
-            print(f'P{curr_proc.pid} STARTED')
         else:  # continue execution
-            curr_proc = self.curr_proc_context['proc']
-            pc = self.curr_proc_context['pc']
+            # execute instruction
+            instr = self.curr_proc.pc-self.curr_proc.boot_time
+            print(f'P{self.curr_proc.pid} instruction {instr+1}')
+            self.curr_proc.pc += 1
 
-            # process finished execution
-            if pc >= (curr_proc.boot_time+curr_proc.cpu_time):
-                print(f'P{curr_proc.pid} return SIGINT')
-                self.mem_m.clean(curr_proc)  # free memory
+            limit_time = self.curr_proc.boot_time + self.curr_proc.cpu_time
+            if self.curr_proc.pc >= limit_time:  # process finished execution
+                print(f'P{self.curr_proc.pid} return SIGINT')
+                self.curr_proc.pc = limit_time
+                self.mem_m.clean(self.curr_proc)  # free memory
+                self.next_process()
+                return True
+
+            if self.curr_proc.priority != 0:  # swap user processes
+                # put current process back to queue if is not over
+                if self.curr_proc.pc < limit_time:
+                    self.q_m.put(self.curr_proc)
                 self.next_process()  # get next process
-            else:  # executes another instruction
-                instr = pc-curr_proc.boot_time
-                print(f'P{curr_proc.pid} instruction {instr+1}')
-                self.curr_proc_context['pc'] += 1
+
+        return True
 
     def next_process(self):
-        self.curr_proc_context = dict(EMPTY_PROCESS)
+        """Get next process from ready processes queue.
+
+        Returns:
+            Next :obj:`Process` or None.
+        """
+        self.curr_proc = None
+        # select a process from ready processes queue
+        curr_proc = self.q_m.get()
+        if not curr_proc:
+            return None
+
+        self.curr_proc = curr_proc
+        # process was never executed
+        if not curr_proc.started:
+            curr_proc.pc = curr_proc.boot_time
+            curr_proc.started = True
+            print(f'process {curr_proc.pid} =>\nP{curr_proc.pid} STARTED')
