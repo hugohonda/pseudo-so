@@ -1,4 +1,4 @@
-from modules import ProcessManager, process_parser
+from modules import ProcessManager, process_parser, read_files_file
 
 import time
 import sys
@@ -8,32 +8,35 @@ import sys
 
 # rm = resource_manager.ResourceManager()
 
-def correct_format(files):
+def correct_format(input_files):
     """Check correct format input.
 
     Only txt format are acceptable.
 
     Args:
-        files (`list`) Files with path and filename.
+        input_files (`list`) Files with path and filename.
     """
-    return '.txt' in files[0] and '.txt' in files[1]
+    return '.txt' in input_files[0] and '.txt' in input_files[1]
 
-def main(files):
+def main(input_files):
     """Pseudo operation system main function.
 
     Receive the files passed by command line from the user and starts
     the pseudo operating system.
 
     Args:
-        files (`list`) Files with path and filename.
+        input_files (`list`) Files with path and filename.
     """
-    if not correct_format(files):
-        print('ERROR: Files with wrong format. Try only \'txt\' format.')
+    if not correct_format(input_files):
+        print('ERROR: input_files with wrong format. Try only \'txt\' format.')
         sys.exit()
+    # init Disk
+    n_blocks, files, operations = read_files_file(input_files[1])
 
     # OS BOOT TIME ---------------
     # read processes to execute
-    processes = process_parser(files[0])
+    processes = process_parser(input_files[0])
+    
 
     # OS SIMULATION ---------------
     counter = 0  # starts cpu time
@@ -65,9 +68,9 @@ def main(files):
 
 if __name__ == '__main__':
     if len(sys.argv) > 2:
-        files = sys.argv[1:]
+        input_files = sys.argv[1:]
     else:
         print('ERROR: Try pass 2 files, the first one about processes and the '
               'second about file system operations.')
         sys.exit()
-    main(files)
+    main(input_files)
