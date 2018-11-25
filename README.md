@@ -22,13 +22,13 @@ python dispatcher.py data/processes.txt data/files.txt
 	- GitHub: [Dayof](https://github.com/Dayof)
 
 
-- Hugo Honda
-	- Registry:
+- Hugo Honda Ferreira
+	- Registry: 12/0012979
 	- E-mail:
 	- GitHub: [](https://github.com/)
 
 
 - William Simião
-	- Registry:
+	- Registry: 13/0138002
 	- E-mail:
 	- GitHub: [](https://github.com/)
