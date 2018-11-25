@@ -28,8 +28,8 @@ class QueueManager(Queue):
     """
     def __init__(self):
         super(QueueManager, self).__init__()
-        self.qsize = 1000  # queues size
-        self.ready_p = PriorityQueue(self.qsize)  # ready processes queue
+        self.qsize = 1000  # queue size
+        self.ready_p = PriorityQueue(4*self.qsize)  # ready processes queue
 
     def put(self, proc):
         """Operation to put a process in the ready processes queue.
@@ -51,3 +51,22 @@ class QueueManager(Queue):
             return []
         else:
             return self.ready_p.get().data
+
+    def update_priority(self):
+        """Update priority using aging technique.
+
+        Aging technique is used to solve starvation problem at the priority
+        queue. After 5 clock ticks all user processes increase one priority
+        level.
+        """
+        new_queue = PriorityQueue(4*self.qsize)
+        for _ in range(self.ready_p.qsize()):
+            curr_queue = self.ready_p.get().data
+            if curr_queue.priority != 0 and curr_queue.priority != 1:
+                curr_queue.priority -= 1
+
+            entry = PriorityEntry(curr_queue.priority, curr_queue)
+            new_queue.put(entry)
+
+        self.ready_p = new_queue
+        print('Priority updated in user processes queue.')

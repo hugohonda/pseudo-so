@@ -42,6 +42,7 @@ class ProcessManager:
     """
     def __init__(self):
         self.curr_pid = 0
+        self.system_clock = 0
         self.mem_m = MemoryManager()
         self.q_m = QueueManager()
         self.curr_proc = None
@@ -78,6 +79,7 @@ class ProcessManager:
             ``True`` if a process execute with success, ``False`` if some error
             occurred during execution or there are no process to execute.
         """
+        self.system_clock += 1
         if self.curr_proc is None:
             if self.next_process() is None:
                 return False
@@ -86,6 +88,10 @@ class ProcessManager:
             instr = self.curr_proc.pc-self.curr_proc.boot_time
             print(f'P{self.curr_proc.pid} instruction {instr+1}')
             self.curr_proc.pc += 1
+
+            # every 5 clock ticks update priority, OS init doesn't count
+            if self.system_clock != 0 and not self.system_clock%5:
+                self.q_m.update_priority()
 
             limit_time = self.curr_proc.boot_time + self.curr_proc.cpu_time
             if self.curr_proc.pc >= limit_time:  # process finished execution
