@@ -83,12 +83,14 @@ class ProcessManager:
             curr_proc = self.q_m.get()
             if not curr_proc:
                 return False
+
             self.curr_proc_context['proc'] = curr_proc
             self.curr_proc_context['pc'] = curr_proc.boot_time
             print(f'P{curr_proc.pid} STARTED')
         else:  # continue execution
             curr_proc = self.curr_proc_context['proc']
             pc = self.curr_proc_context['pc']
+
             # process finished execution
             if pc >= (curr_proc.boot_time+curr_proc.cpu_time):
                 print(f'P{curr_proc.pid} return SIGINT')
