@@ -24,8 +24,8 @@ python dispatcher.py data/processes.txt data/files.txt
 
 - Hugo Honda Ferreira
 	- Registry: 12/0012979
-	- E-mail:
-	- GitHub: [](https://github.com/)
+	- E-mail: hugohondaf@gmail.com
+	- GitHub: [hugohonda](https://github.com/hugohonda)
 
 
 - William Simião
