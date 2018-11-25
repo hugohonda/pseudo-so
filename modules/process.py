@@ -11,22 +11,24 @@ class Process:
                               priority, cpu_time, blocks, printer_id,
                               scanner_req, modem_req and disk_id.
     """
-    def __init__(self, process_desc):
+    def __init__(self, process_desc, offset, pid):
         for k, v in process_desc.items():
-            setattr(self, k, v)
-        self.pid = uuid.uuid4()
+            setattr(self, k, int(v))
+        self.offset = offset
+        self.pid = pid
 
     def __str__(self):
         return (
-            f'Process ID: {self.pid}\n'+
-            f'Boot time: {self.boot_time}\n'+
-            f'Priority: {self.priority}\n'+
-            f'CPU time: {self.cpu_time}\n'+
-            f'Blocks: {self.blocks}\n'+
-            f'Printer ID: {self.printer_id}\n'+
-            f'Scanner: {self.scanner_req}\n'+
-            f'Modem: {self.modem_req}\n'+
-            f'Disk ID: {self.disk_id}'
+            f'\tPID: {self.pid}\n'+
+            f'\toffset: {self.offset}\n'+
+            f'\tblocks: {self.blocks}\n'+
+            f'\tpriority: {self.priority}\n'+
+            f'\ttime: {self.cpu_time}\n'+
+            f'\tprinters: {self.printer_id}\n'+
+            f'\tscanners: {self.scanner_req}\n'+
+            f'\tmodems: {self.modem_req}\n'+
+            f'\tdrivers: {self.disk_id}\n\n'+
+            f'process {self.pid} =>'
         )
 
 
@@ -68,8 +70,10 @@ class ProcessManager:
         process_info = {k: v for k,v in zip(fields, process_desc)}
 
         if self.check_valid_params(process_info):
+            new_pid = len(self.processes)
+            new_offset = self.calc_offset(new_pid)
             # creates a process with the process description
-            self.processes.append(Process(process_info))
+            self.processes.append(Process(process_info, new_offset, new_pid))
         else:
             raise ValueError('Incomplete params to start a process.'
                   'It should be informed 8 params: boot_time, priority, '
@@ -92,3 +96,15 @@ class ProcessManager:
                process_info['disk_id'] in id_range and \
                process_info['scanner_req'] in id_range[:2] and \
                process_info['modem_req'] in id_range[:2]
+
+    def calc_offset(self, new_pid):
+        """Calculates process offset.
+
+        Args:
+            new_pid (`int`) New process ID.
+
+        Returns:
+            ``int`` with new process offset number.
+        """
+        # first process start with offset 0
+        return 0 if new_pid == 0 else self.processes[new_pid-1].blocks+1

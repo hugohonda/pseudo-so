@@ -32,9 +32,16 @@ def main(files):
     if not correct_format(files):
         print('ERROR: Files with wrong format. Try only \'txt\' format.')
         sys.exit()
-    # start process manager
+
+    # starts process manager
     pm = ProcessManager(files[0])
     pm.start()
+    for p in pm.processes:
+        print(f'dispatcher =>\n{p}')
+
+    # # starts file system
+    # fs = FileSystem(files[1])
+    # fs.start()
 
     # # inicialização dos recursos
     # rm.newResource(type='scanner')
