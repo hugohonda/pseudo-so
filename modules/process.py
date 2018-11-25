@@ -1,4 +1,7 @@
-import uuid
+from .memory import MemoryManager
+from .queues import QueueManager
+
+EMPTY_PROCESS = {'proc': None, 'pc': 0}
 
 
 class Process:
@@ -33,78 +36,68 @@ class Process:
 
 
 class ProcessManager:
-    """Process manager from pseudo operating system.
+    """Pseudo OS process manager.
 
-    Args:
-        filename (`str`) Filename with relative path. The file contains
-                         processes information.
+    Manage resources, memory, queues and disk according to each process demand.
     """
-    def __init__(self, filename):
-        self.filename = filename
-        self.processes = []
-
-    def start(self):
-        """Starts process manager.
-        """
-        with open(self.filename, 'r') as f:
-            for line in f:
-                try:
-                    self.new_process(line.strip().replace(',', '').split(' '))
-                except ValueError as err:
-                    print('ERROR: The process couldn\'t be started due to :'
-                          f'{err}')
+    def __init__(self):
+        self.curr_pid = 0
+        self.mem_m = MemoryManager()
+        self.q_m = QueueManager()
+        self.curr_proc_context = dict(EMPTY_PROCESS)
 
     def new_process(self, process_desc):
-        """Starts a new process.
-
-        Args:
-            process_desc (`list`) Process description. Parameters: boot_time,
-                                  priority, cpu_time, blocks, printer_id,
-                                  scanner_req, modem_req and disk_id
-                                  separated with comma.
-        Raises:
-            ValueError: If some parameter is not valid or not informed.
+        """Try to creates a process.
         """
-        fields = ['boot_time', 'priority', 'cpu_time', 'blocks',
-                  'printer_id', 'scanner_req', 'modem_req', 'disk_id']
-        process_info = {k: v for k,v in zip(fields, process_desc)}
+        # TODO: check resources
+        try:
+            # check memory limits to current process
+            offset = self.mem_m.check_limits(process_desc)
+        except ValueError as err:
+            print(f'Current process cannot be allocated due to : {err}')
+            return False
 
-        if self.check_valid_params(process_info):
-            new_pid = len(self.processes)
-            new_offset = self.calc_offset(new_pid)
-            # creates a process with the process description
-            self.processes.append(Process(process_info, new_offset, new_pid))
-        else:
-            raise ValueError('Incomplete params to start a process.'
-                  'It should be informed 8 params: boot_time, priority, '
-                  'cpu_time, blocks, printer_id, scanner_req, modem_req and '
-                  'disk_id separated with comma.')
+        # creates a process entity with process description
+        proc = Process(process_desc, offset, self.curr_pid)
+        self.curr_pid += 1
+        # allocates process in memory
+        self.mem_m.allocate(proc)
+        # put process at the queue
+        self.q_m.put(proc)
+        print(proc)  # shows process information
 
-    def check_valid_params(self, process_info):
-        """Checks if all params informed is valid.
-
-        Args:
-            process_info (`dict`) Process description. Parameters: boot_time,
-                                  priority, cpu_time, blocks, printer_id,
-                                  scanner_req, modem_req and disk_id.
-        Returns:
-            ``True`` if all params is valid, ``False`` otherwise.
+    def empty(self):
+        """Check if there are no process running.
         """
-        id_range = ['0', '1', '2']
-        return len(process_info) == 8 and \
-               process_info['printer_id'] in id_range and \
-               process_info['disk_id'] in id_range and \
-               process_info['scanner_req'] in id_range[:2] and \
-               process_info['modem_req'] in id_range[:2]
+        return self.curr_proc_context['proc'] is None
 
-    def calc_offset(self, new_pid):
-        """Calculates process offset.
-
-        Args:
-            new_pid (`int`) New process ID.
+    def next(self):
+        """Simulate next process.
 
         Returns:
-            ``int`` with new process offset number.
+            ``True`` if a process execute with success, ``False`` if some error
+            occurred during execution or there are no process to execute.
         """
-        # first process start with offset 0
-        return 0 if new_pid == 0 else self.processes[new_pid-1].blocks+1
+        if self.curr_proc_context['proc'] is None:
+            # select a process from ready processes queue
+            curr_proc = self.q_m.get()
+            if not curr_proc:
+                return False
+            self.curr_proc_context['proc'] = curr_proc
+            self.curr_proc_context['pc'] = curr_proc.boot_time
+            print(f'P{curr_proc.pid} STARTED')
+        else:  # continue execution
+            curr_proc = self.curr_proc_context['proc']
+            pc = self.curr_proc_context['pc']
+            # process finished execution
+            if pc >= (curr_proc.boot_time+curr_proc.cpu_time):
+                print(f'P{curr_proc.pid} return SIGINT')
+                self.mem_m.clean(curr_proc)  # free memory
+                self.next_process()  # get next process
+            else:  # executes another instruction
+                instr = pc-curr_proc.boot_time
+                print(f'P{curr_proc.pid} instruction {instr+1}')
+                self.curr_proc_context['pc'] += 1
+
+    def next_process(self):
+        self.curr_proc_context = dict(EMPTY_PROCESS)

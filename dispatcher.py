@@ -1,12 +1,10 @@
-from modules import ProcessManager
+from modules import ProcessManager, process_parser
+
+import time
 import sys
 
 # from modules import filesystem
-# from modules import memory
-# from modules import process_manager
-# from modules import queue
 # from modules import resource_manager
-# import os
 
 # rm = resource_manager.ResourceManager()
 
@@ -24,7 +22,7 @@ def main(files):
     """Pseudo operation system main function.
 
     Receive the files passed by command line from the user and starts
-    process manager and file system.
+    the pseudo operating system.
 
     Args:
         files (`list`) Files with path and filename.
@@ -33,45 +31,37 @@ def main(files):
         print('ERROR: Files with wrong format. Try only \'txt\' format.')
         sys.exit()
 
-    # starts process manager
-    pm = ProcessManager(files[0])
-    pm.start()
-    for p in pm.processes:
-        print(f'dispatcher =>\n{p}')
+    # OS BOOT TIME ---------------
+    # read processes to execute
+    processes = process_parser(files[0])
 
-    # # starts file system
+    # OS SIMULATION ---------------
+    counter = 0  # starts cpu time
+    pm = ProcessManager()  # starts process manager
+    # while there are processes to simulate, pseudo OS continue execution
+    while processes or not pm.empty():
+        print(f'---- Pseudo OS timer: {counter}')
+        # execute process when boot time arrive
+        if len(processes) and processes[0]['boot_time'] == counter:
+            curr_proc = processes.pop(0)  # next process
+            print(f'dispatcher =>')
+            pm.new_process(curr_proc)  # creates process
+
+        pm.next()  # run OS pc
+        counter += 1  # increase cpu time
+
+    # TODO : starts file system
     # fs = FileSystem(files[1])
     # fs.start()
 
-    # # inicialização dos recursos
+    # TODO : start resources manager
     # rm.newResource(type='scanner')
     # rm.newResource(type='printer')
     # rm.newResource(type='printer')
     # rm.newResource(type='modem')
     # rm.newResource(type='drive')
     # rm.newResource(type='drive')
-    # print(rm.getCounts())
-    #
-    # pid = 0
-    # offset = 0
-    # blocks = 64
-    # priority = 0
-    # time = 3
-    # printers = 0
-    # scanners = 0
-    # modems = 0
-    # drives = 0
 
-    # print(f'''dispatcher =>
-    #     PID: {pid}
-    #     offset: {offset}
-    #     blocks: {blocks}
-    #     priority: {priority}
-    #     time: {time}
-    #     printers: {printers}
-    #     scanners: {scanners}
-    #     modems: {modems}
-    #     drives: {drives}''')
 
 if __name__ == '__main__':
     if len(sys.argv) > 2:
