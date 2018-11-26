@@ -22,13 +22,13 @@ class ResourceManager:
         if process_desc['scanner_req'] and self.resources['scanner']:
             error_msgs.append(base_msg('scanner'))
         if process_desc['printer_id'] != 0 and \
-           self.resources['printers'][process_desc.printer_id]:
-            error_msgs.append(base_msg(f'printer {process_desc.printer_id}'))
+           self.resources['printers'][process_desc['printer_id']]:
+            error_msgs.append(base_msg(f"printer {process_desc['printer_id']}"))
         if process_desc['modem_req'] and self.resources['modem']:
             error_msgs.append(base_msg('modem'))
         if process_desc['disk_id'] != 0 and \
-           self.resources['drivers'][process_desc.disk_id]:
-           error_msgs.append(base_msg(f'drive {process_desc.disk_id}'))
+           self.resources['drivers'][process_desc['disk_id']]:
+            error_msgs.append(base_msg(f"drive {process_desc['disk_id']}"))
 
         if not process_desc['priority']:
             error_msgs.append('Real-time processes cannot allocate resources.')

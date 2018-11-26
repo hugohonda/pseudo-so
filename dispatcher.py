@@ -1,6 +1,6 @@
 from modules import ProcessManager, process_parser, disk_info_parser, \
                     DiskManager
-
+import threading
 import sys
 
 
@@ -76,7 +76,8 @@ def main(input_files):
         if len(processes) and processes[0]['boot_time'] <= counter:
             curr_proc = processes.pop(0)  # next process
             print(f'dispatcher =>')
-            pm.new_process(curr_proc)  # creates process
+            threading.Thread(target=pm.new_process, args=[curr_proc]).start()
+            # pm.new_process(curr_proc)  # creates process
 
         pm.next()  # run OS pc
         counter += 1  # increase cpu time
