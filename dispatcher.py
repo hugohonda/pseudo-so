@@ -94,6 +94,7 @@ def main(input_files):
             processes_executions[int(op[0])] = processes_executions[int(op[0])] - 1
             disk(dm, i, op)
 
+    dm.print_disk_map()
 
 if __name__ == '__main__':
     if len(sys.argv) > 2:

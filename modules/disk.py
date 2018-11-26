@@ -66,4 +66,7 @@ class DiskManager:
 				return self.delete(op)	
 		else:
 			return 7, ''
-		return 0,''		
+		return 0,''
+
+	def print_disk_map(self):
+		print(self.blocks)
