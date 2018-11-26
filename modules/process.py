@@ -16,7 +16,7 @@ class Process:
     """
     def __init__(self, process_desc, offset, pid):
         for k, v in process_desc.items():
-            setattr(self, k, int(v))
+            setattr(self, k, v)
         self.offset = offset
         self.pid = pid
         self.pc = self.boot_time + self.cpu_time  # process execution counter
@@ -51,15 +51,21 @@ class ProcessManager:
 
     def new_process(self, process_desc):
         """Try to creates a process.
+
+        Args:
+            process_desc (`dict`) Process description. Parameters: boot_time,
+                                  priority, cpu_time, blocks, printer_id,
+                                  scanner_req, modem_req and disk_id.
         """
-
         try:
-            self.res_m.resources_avaliable(process_desc)
+            # checks if resources demanded from process is available
+            self.res_m.resources_available(process_desc)
         except ValueError as err:
-            print(f'Process hasnt all resources: {err}')
+            print(f'Current process cannot be allocated due to : {err}')
+            return False
 
         try:
-            # check memory limits to current process
+            # checks memory limits to current process
             offset = self.mem_m.check_limits(process_desc)
         except ValueError as err:
             print(f'Current process cannot be allocated due to : {err}')
@@ -70,6 +76,8 @@ class ProcessManager:
         self.curr_pid += 1
         # allocates process in memory
         self.mem_m.allocate(proc)
+        # allocates process resources
+        self.res_m.allocate(proc)
         # put process at the queue
         self.q_m.put(proc)
         print(proc)  # shows process information
@@ -105,6 +113,7 @@ class ProcessManager:
                 print(f'P{self.curr_proc.pid} return SIGINT')
                 self.curr_proc.pc = limit_time
                 self.mem_m.clean(self.curr_proc)  # free memory
+                self.res_m.free(self.curr_proc)  # free resources
                 self.next_process()
                 return True
 

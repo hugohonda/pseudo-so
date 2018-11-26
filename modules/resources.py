@@ -1,11 +1,13 @@
 class ResourceManager:
-    def __init__(self, resources={}):
-        self.resources_dict = { 'scanner': False,
-                                'printers': [False, False],
-                                'modem': False,
-                                'drivers': [False, False]}
+    """Pseudo OS resource manager.
+    """
+    def __init__(self):
+        self.resources = {'scanner': 0,
+                          'printers': [0, 0],
+                          'modem': 0,
+                          'drivers': [0, 0]}
 
-    def resources_avaliable(self, process_desc):
+    def resources_available(self, process_desc):
         """Verify if every resource requested by the process is avaliable.
 
         Args:
@@ -13,40 +15,49 @@ class ResourceManager:
         Raises:
             ValueError: If some resource is already in use.
         """
-        if process_desc['scanner_req'] == 1:
-            if self.resources_dict['scanner'] == True:
-                raise ValueError(f'Resource scanner alredy in use')
-        if process_desc['printer_id'] != 0:
-            if self.resources_dict['printers'][process_desc.printer_id] == True:
-                raise ValueError(f'Resource printer {process_desc.printer_id} alredy in use')
-        if process_desc['modem_req'] == True:
-            if self.resources_dict['modem'] == 1:
-                raise ValueError(f'Resource modem alredy in use')
-        if process_desc['disk_id'] != 0:
-            if self.resources_dict['drivers'][process_desc.disk_id] == True:
-                raise ValueError(f'Resource drive {process_desc.disk_id} alredy in use')
+        error_msgs = []
+        base_msg = lambda driver: f'Resource \'{driver}\' is alredy in use.'
+        if process_desc['scanner_req'] and self.resources['scanner']:
+            error_msgs.append(base_msg('scanner'))
+        if process_desc['printer_id'] != 0 and \
+           self.resources['printers'][process_desc.printer_id]:
+            error_msgs.append(base_msg(f'printer {process_desc.printer_id}'))
+        if process_desc['modem_req'] and self.resources['modem']:
+            error_msgs.append(base_msg('modem'))
+        if process_desc['disk_id'] != 0 and \
+           self.resources['drivers'][process_desc.disk_id]:
+           error_msgs.append(base_msg(f'drive {process_desc.disk_id}'))
 
-    def free_resources(self, process_desc):
-        """Set every use process's resource flag to False
+        if not process_desc['priority']:
+            error_msgs.append('Real-time processes cannot allocate resources.')
+
+        if error_msgs:
+            raise ValueError(f"{' '.join(error_msgs)}")
+
+    def free(self, proc):
+        """Free resources allocated to a process.
 
         Args:
-            process_desc (`dict`) Process description.
+            process (:obj:`Process`) Process entity.
         """
-        if process_desc['scanner_req'] == 1:
-            self.resources_dict['scanner'] = False
-        if process_desc['printer_id'] != 0:
-            self.resources_dict['printers'][process_desc['printer_id']] = False
-        if process_desc['modem_req'] == 1:
-            self.resources_dict['modem'] = False
-        if process_desc['disk_id'] != 0:
-            self.resources_dict['drivers'][process_desc['disk_id']] = False
+        if proc.scanner_req:
+            self.resources['scanner'] = 0
+        if proc.modem_req:
+            self.resources['modem'] = 0
+        if proc.printer_id != 0:
+            self.resources['printers'][proc.printer_id] = 0
+        if proc.disk_id != 0:
+            self.resources['drivers'][proc.disk_id] = 0
 
-    def get_resources(self, process_desc):
-        if process_desc['scanner_req'] == 1:
-            self.resources_dict['scanner'] = True
-        if process_desc['printer_id'] != 0:
-            self.resources_dict['printers'][process_desc['printer_id']] = True
-        if process_desc['modem_req'] == 1:
-            self.resources_dict['modem'] = True
-        if process_desc['disk_id'] != 0:
-            self.resources_dict['drivers'][process_desc['disk_id']] = True
+    def allocate(self, proc):
+        """Allocates resources to a process.
+
+        Args:
+            process (:obj:`Process`) Process entity.
+        """
+        self.resources['scanner'] = proc.scanner_req
+        self.resources['modem'] = proc.modem_req
+        if proc.printer_id != 0:
+            self.resources['printers'][proc.printer_id] = 1
+        if proc.disk_id != 0:
+            self.resources['drivers'][proc.disk_id] = 1

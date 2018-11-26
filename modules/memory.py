@@ -53,7 +53,7 @@ class MemoryManager:
         """Allocates memory to a process.
 
         Args:
-            process (`dict`) Process information.
+            process (:obj:`Process`) Process entity.
         """
         offset, proc_b = proc.offset, proc.blocks
         self.mem[offset:offset+proc_b] = [1]*proc_b
@@ -62,7 +62,7 @@ class MemoryManager:
         """Free memory allocated to a process.
 
         Args:
-            process (`dict`) Process information.
+            process (:obj:`Process`) Process entity.
         """
         offset, proc_b = proc.offset, proc.blocks
         self.mem[offset:offset+proc_b] = [0]*proc_b
