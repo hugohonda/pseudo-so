@@ -1,11 +1,13 @@
+import threading
+
 class ResourceManager:
     """Pseudo OS resource manager.
     """
     def __init__(self):
-        self.resources = {'scanner': 0,
-                          'printers': [0, 0],
-                          'modem': 0,
-                          'drivers': [0, 0]}
+        self.resources = {'scanner': {'id': 0, 'sem': threading.Semaphore()},
+                          'printers': [{'id': 0, 'sem': threading.Semaphore()}, {'id': 0, 'sem': threading.Semaphore()}],
+                          'modem': {'id': 0, 'sem': threading.Semaphore()},
+                          'drivers': [{'id': 0, 'sem': threading.Semaphore()}, {'id': 0, 'sem': threading.Semaphore()}]}
 
     def resources_available(self, process_desc):
         """Verify if every resource requested by the process is avaliable.
@@ -41,13 +43,15 @@ class ResourceManager:
             process (:obj:`Process`) Process entity.
         """
         if proc.scanner_req:
-            self.resources['scanner'] = 0
+            self.resources['scanner']['id'] = 0
+            self.resources['scanner']['sem'].release()
         if proc.modem_req:
-            self.resources['modem'] = 0
+            self.resources['modem']['id'] = 0
+            self.resources['modem']['sem'].release()
         if proc.printer_id != 0:
-            self.resources['printers'][proc.printer_id] = 0
+            self.resources['printers'][proc.printer_id]['id'] = 0
         if proc.disk_id != 0:
-            self.resources['drivers'][proc.disk_id] = 0
+            self.resources['drivers'][proc.disk_id]['id'] = 0
 
     def allocate(self, proc):
         """Allocates resources to a process.
@@ -55,9 +59,13 @@ class ResourceManager:
         Args:
             process (:obj:`Process`) Process entity.
         """
-        self.resources['scanner'] = proc.scanner_req
-        self.resources['modem'] = proc.modem_req
+        if not proc.scanner_req:
+            self.resources['scanner']['id'] = proc.scanner_req
+            self.resources['scanner']['sem'].acquire()
+        if not proc.modem_req:
+            self.resources['modem']['id'] = proc.modem_req
+            self.resources['modem']['sem'].acquire()
         if proc.printer_id != 0:
-            self.resources['printers'][proc.printer_id] = 1
+            self.resources['printers'][proc.printer_id]['id'] = 1
         if proc.disk_id != 0:
-            self.resources['drivers'][proc.disk_id] = 1
+            self.resources['drivers'][proc.disk_id]['id'] = 1
