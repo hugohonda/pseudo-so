@@ -50,7 +50,6 @@ def disk(dm, i, op):
         print ("Não existe o código de operação " + op[1] +  ".");
 
 
-
 def main(input_files):
     """Pseudo operation system main function.
 
