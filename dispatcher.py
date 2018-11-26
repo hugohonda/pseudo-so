@@ -62,14 +62,6 @@ def main(input_files):
     if not correct_format(input_files):
         print('ERROR: input_files with wrong format. Try only \'txt\' format.')
         sys.exit()
-<<<<<<< Updated upstream
-=======
-    # init Disk
-    n_blocks, files, operations = read_files_file(input_files[1])
-    dm = DiskManager(n_blocks, files, operations)
-    # init resources
-    
->>>>>>> Stashed changes
 
     # OS BOOT TIME ---------------
     # read processes to execute
