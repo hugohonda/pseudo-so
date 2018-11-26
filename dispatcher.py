@@ -16,38 +16,38 @@ def correct_format(input_files):
 
 
 def disk(dm, i, op):
-    op_result, others = dm.process(op);
+    op_result, others = dm.process(op)
     if      (op_result == 0):
-        print ("Operação " + str(i) + " => Falha");
-        print ("O arquivo " + op[2] + " já existe.");
+        print ("Operação " + str(i) + " => Falha")
+        print ("O arquivo " + op[2] + " já existe.")
 
     elif    (op_result == 1):
-        print ("Operação " + str(i) + " => Sucesso");
-        print ("O processo " + op[0] + " criou o arquivo " + op[2] + " (blocos " + others[:-2] + ").");
+        print ("Operação " + str(i) + " => Sucesso")
+        print ("O processo " + op[0] + " criou o arquivo " + op[2] + " (blocos " + others[:-2] + ").")
 
     elif    (op_result == 2):
-        print ("Operação " + str(i) + " => Falha");
-        print ("O processo " + op[0] + " não pode criar o arquivo " + op[2] +" (falta de espaço).");
+        print ("Operação " + str(i) + " => Falha")
+        print ("O processo " + op[0] + " não pode criar o arquivo " + op[2] +" (falta de espaço).")
 
     elif    (op_result == 3):
-        print ("Operação " + str(i) + " => Falha");
-        print ("O arquivo " + op[2] + " não existe.");
+        print ("Operação " + str(i) + " => Falha")
+        print ("O arquivo " + op[2] + " não existe.")
 
     elif    (op_result == 4):
-        print ("Operação " + str(i) + " => Sucesso");
-        print ("O processo " + op[0] + " deletou o arquivo " + op[2] + ".");
+        print ("Operação " + str(i) + " => Sucesso")
+        print ("O processo " + op[0] + " deletou o arquivo " + op[2] + ".")
 
     elif    (op_result == 5):
-        print ("Operação " + str(i) + " => Falha");
-        print ("O processo " + op[0] + " não pode deletar o arquivo " + op[2] + ".");
+        print ("Operação " + str(i) + " => Falha")
+        print ("O processo " + op[0] + " não pode deletar o arquivo " + op[2] + ".")
 
     elif    (op_result == 6):
-        print ("Operação " + str(i) + " => Falha");
-        print ("Não existe o arquivo " + op[2] +  ".");
+        print ("Operação " + str(i) + " => Falha")
+        print ("Não existe o arquivo " + op[2] +  ".")
 
     elif    (op_result == 7):
-        print ("Operação " + str(i) + " => Inválida");
-        print ("Não existe o código de operação " + op[1] +  ".");
+        print ("Operação " + str(i) + " => Inválida")
+        print ("Não existe o código de operação " + op[1] +  ".")
 
 
 def main(input_files):
@@ -62,6 +62,14 @@ def main(input_files):
     if not correct_format(input_files):
         print('ERROR: input_files with wrong format. Try only \'txt\' format.')
         sys.exit()
+<<<<<<< Updated upstream
+=======
+    # init Disk
+    n_blocks, files, operations = read_files_file(input_files[1])
+    dm = DiskManager(n_blocks, files, operations)
+    # init resources
+    
+>>>>>>> Stashed changes
 
     # OS BOOT TIME ---------------
     # read processes to execute
@@ -86,7 +94,7 @@ def main(input_files):
         counter += 1  # increase cpu time
 
     for i, op in enumerate(operations):
-        disk(dm, i, op);
+        disk(dm, i, op)
 
 
 if __name__ == '__main__':
