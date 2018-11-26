@@ -53,6 +53,7 @@ def main(input_files):
 
     print('\nSistema de arquivos =>')
     dm.show_logging()
+    dm.show_disk()
 
 
 if __name__ == '__main__':

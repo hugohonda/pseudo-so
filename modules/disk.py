@@ -189,7 +189,7 @@ class DiskManager:
 		"""
 		info = {'owner': op['pid'], 'name': op['filename']}
 		self.disk_length -= op['blocks']
-		self.disk[first_block:first_block+op['blocks']] = info
+		self.disk[first_block:first_block+op['blocks']] = [info]*op['blocks']
 		return list(map(lambda x: str(x),
 						range(first_block, first_block+op['blocks'])))
 
@@ -210,3 +210,14 @@ class DiskManager:
 		"""
 		for lid, msg in self.logging.items():
 			print(msg)
+
+	def show_disk(self):
+		"""Show disk allocation.
+		"""
+		msg = ''
+		for d in self.disk:
+			if not d:
+				msg += '| 0 '
+			else:
+				msg += f"| {d['name']} "
+		print(f'{msg}|\n')
