@@ -1,5 +1,5 @@
-from modules import ProcessManager, process_parser, disk_info_parser
-# from modules import filesystem
+from modules import ProcessManager, process_parser, disk_info_parser, \
+                    DiskManager
 
 import sys
 
@@ -13,6 +13,43 @@ def correct_format(input_files):
         input_files (`list`) Files with path and filename.
     """
     return '.txt' in input_files[0] and '.txt' in input_files[1]
+
+
+def disk(dm, i, op):
+    op_result, others = dm.process(op);
+    if      (op_result == 0):
+        print ("Operação " + str(i) + " => Falha");
+        print ("O arquivo " + op[2] + " já existe.");
+
+    elif    (op_result == 1):
+        print ("Operação " + str(i) + " => Sucesso");
+        print ("O processo " + op[0] + " criou o arquivo " + op[2] + " (blocos " + others[:-2] + ").");
+
+    elif    (op_result == 2):
+        print ("Operação " + str(i) + " => Falha");
+        print ("O processo " + op[0] + " não pode criar o arquivo " + op[2] +" (falta de espaço).");
+
+    elif    (op_result == 3):
+        print ("Operação " + str(i) + " => Falha");
+        print ("O arquivo " + op[2] + " não existe.");
+
+    elif    (op_result == 4):
+        print ("Operação " + str(i) + " => Sucesso");
+        print ("O processo " + op[0] + " deletou o arquivo " + op[2] + ".");
+
+    elif    (op_result == 5):
+        print ("Operação " + str(i) + " => Falha");
+        print ("O processo " + op[0] + " não pode deletar o arquivo " + op[2] + ".");
+
+    elif    (op_result == 6):
+        print ("Operação " + str(i) + " => Falha");
+        print ("Não existe o arquivo " + op[2] +  ".");
+
+    elif    (op_result == 7):
+        print ("Operação " + str(i) + " => Inválida");
+        print ("Não existe o código de operação " + op[1] +  ".");
+
+
 
 def main(input_files):
     """Pseudo operation system main function.
@@ -32,7 +69,7 @@ def main(input_files):
     processes = process_parser(input_files[0])
     # read disk files and operations
     n_blocks, files, operations = disk_info_parser(input_files[1])
-    # TODO : init resources
+    dm = DiskManager(n_blocks, files, operations)
 
     # OS SIMULATION ---------------
     counter = 0  # starts cpu time
@@ -49,9 +86,8 @@ def main(input_files):
         pm.next()  # run OS pc
         counter += 1  # increase cpu time
 
-    # TODO : starts file system
-    # fs = FileSystem(files[1])
-    # fs.start()
+    for i, op in enumerate(operations):
+        disk(dm, i, op);
 
 
 if __name__ == '__main__':
