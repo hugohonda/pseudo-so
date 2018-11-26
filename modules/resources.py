@@ -1,25 +1,17 @@
 class ResourceManager:
-    __instance = None
-    @staticmethod
-    def getInstance():
-        """ Static access method. """
-        if ResourceManager.__instance == None:
-            ResourceManager()
-        return ResourceManager.__instance
-
     def __init__(self, resources={}):
-        if ResourceManager.__instance == None:
-            self.resources_dict = { 'scanner': False,
-                                    'printers': [False, False],
-                                    'modem': False,
-                                    'drivers': [False, False]}
-            ResourceManager.__instance = self
+        self.resources_dict = { 'scanner': False,
+                                'printers': [False, False],
+                                'modem': False,
+                                'drivers': [False, False]}
 
     def resources_avaliable(self, process_desc):
-        """Verify if every resource requested by the process is avaliable
+        """Verify if every resource requested by the process is avaliable.
 
         Args:
-            process_desc (`dictionary`) dictionary with process atributs
+            process_desc (`dict`) Process description.
+        Raises:
+            ValueError: If some resource is already in use.
         """
         if process_desc['scanner_req'] == 1:
             if self.resources_dict['scanner'] == True:
@@ -38,7 +30,7 @@ class ResourceManager:
         """Set every use process's resource flag to False
 
         Args:
-            process_desc (`dictionary`) dictionary with process atributs
+            process_desc (`dict`) Process description.
         """
         if process_desc['scanner_req'] == 1:
             self.resources_dict['scanner'] = False
