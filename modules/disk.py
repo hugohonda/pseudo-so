@@ -156,13 +156,15 @@ class DiskManager:
 			``int`` that indicates the first block to allocate that file.
 			-1 if there are no contiguous space to allocate that file.
 		"""
-		base, limit = 0, len(self.disk)
+		base, limit = 0, len(self.disk)-1
 		# try to find place to allocate the file
 		while base <= limit:
 			free_b = 0  # possible blocks to allocation
 			last_base = base
 			while not self.disk[base]:
 				free_b += 1
+				if base >= limit:
+					break
 				base += 1
 				if free_b == op['blocks']:
 					break
