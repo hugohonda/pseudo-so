@@ -45,7 +45,7 @@ class DiskManager:
 				return d['owner']
 		return -1
 
-	def check_permissions(self, op):
+	def check_permissions(self, op, priority):
 		"""Check process permissions.
 
 		Real-time processes can create/delete any file. User processes can
@@ -53,11 +53,13 @@ class DiskManager:
 
 		Args:
 			op (`dict`) Operation details.
+			priority (`int`) Process priority.
 		Returns:
 			``True`` if process can operate on the disk, ``False`` otherwise.
 		"""
-		# delete operation
-		if op['op'] and self.find_owner(op['filename']) == op['pid']:
+		# user process delete operation
+		if priority != 0 and op['op'] and \
+		   self.find_owner(op['filename']) != op['pid']:
 			return False
 		return True
 
@@ -106,7 +108,7 @@ class DiskManager:
 			return False
 
 		# process is running, checks its permissions
-		if not self.check_permissions(curr_op):
+		if not self.check_permissions(curr_op, self.pm.curr_proc.priority):
 			info = 	f"O processo {curr_op['pid']} não pode deletar o arquivo" \
 					f" {curr_op['filename']}."
 			self.log(curr_op['id'], info)
@@ -201,10 +203,11 @@ class DiskManager:
 		Args:
 			op (`dict`) Operation details.
 		"""
+		idxs = []
 		for i, d in enumerate(self.disk):
 			if d and d['name'] == op['filename']:
-				idx = i
-		self.disk[i] = 0
+				idxs.append(i)
+		self.disk[idxs[0]:idxs[-1]+1] = [0]*len(idxs)
 		self.disk_length += op['blocks']
 
 	def show_logging(self):
