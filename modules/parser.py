@@ -42,6 +42,10 @@ def mount_process(process_desc, new_pid):
 
     if check_valid_params(process_info):
         process_info['pid'] = new_pid
+        if process_info['disk_id']:
+            process_info['disk_id'] -= 1
+        if process_info['printer_id']:
+            process_info['printer_id'] -= 1
         return process_info
     else:
         raise ValueError('Incomplete params to start a process.'
@@ -60,7 +64,7 @@ def check_valid_params(process_info):
     Returns:
         ``True`` if all params is valid, ``False`` otherwise.
     """
-    id_range = range(2)
+    id_range = range(3)
     return len(process_info) == 8 and \
            process_info['printer_id'] in id_range and \
            process_info['disk_id'] in id_range and \

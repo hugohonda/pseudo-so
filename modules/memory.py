@@ -34,6 +34,8 @@ class MemoryManager:
             last_base = base_seg
             while not self.mem[base_seg]:
                 free_b += 1
+                if base_seg >= limit_seg:
+                    break
                 base_seg += 1
                 if free_b == process['blocks']:
                     break
