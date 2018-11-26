@@ -50,6 +50,11 @@ class ResourceManager:
             self.resources_dict['drivers'][process_desc['disk_id']] = False
 
     def get_resources(self, process_desc):
+        """Set every use process's resource flag to True
+
+        Args:
+            process_desc (`dictionary`) dictionary with process atributs
+        """        
         if process_desc['scanner_req'] == 1:
             self.resources_dict['scanner'] = True
         if process_desc['printer_id'] != 0:
