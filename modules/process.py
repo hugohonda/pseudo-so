@@ -1,6 +1,6 @@
+from .resources import ResourceManager
 from .memory import MemoryManager
 from .queues import QueueManager
-from .resource_manager import ResourceManager
 
 import time
 
@@ -52,12 +52,12 @@ class ProcessManager:
     def new_process(self, process_desc):
         """Try to creates a process.
         """
-        
+
         try:
             self.res_m.resources_avaliable(process_desc)
         except ValueError as err:
             print(f'Process hasnt all resources: {err}')
-        
+
         try:
             # check memory limits to current process
             offset = self.mem_m.check_limits(process_desc)

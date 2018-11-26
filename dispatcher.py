@@ -1,13 +1,8 @@
-from modules import ProcessManager, process_parser, read_files_file
-from modules.resource_manager import ResourceManager
+from modules import ProcessManager, process_parser, disk_info_parser
+# from modules import filesystem
 
-import time
 import sys
 
-# from modules import filesystem
-# from modules import resource_manager
-
-# rm = resource_manager.ResourceManager()
 
 def correct_format(input_files):
     """Check correct format input.
@@ -31,15 +26,13 @@ def main(input_files):
     if not correct_format(input_files):
         print('ERROR: input_files with wrong format. Try only \'txt\' format.')
         sys.exit()
-    # init Disk
-    n_blocks, files, operations = read_files_file(input_files[1])
-    # init resources
-    
 
     # OS BOOT TIME ---------------
     # read processes to execute
     processes = process_parser(input_files[0])
-    
+    # read disk files and operations
+    n_blocks, files, operations = disk_info_parser(input_files[1])
+    # TODO : init resources
 
     # OS SIMULATION ---------------
     counter = 0  # starts cpu time
@@ -59,9 +52,6 @@ def main(input_files):
     # TODO : starts file system
     # fs = FileSystem(files[1])
     # fs.start()
-
-    ResourceManager()
-    
 
 
 if __name__ == '__main__':

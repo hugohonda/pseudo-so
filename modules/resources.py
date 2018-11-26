@@ -14,7 +14,7 @@ class ResourceManager:
                               'modem': 0,
                               'drivers': [0, 0]}
             ResourceManager.__instance = self
-    
+
     def resources_avaliable(self, process_desc):
         """Verify if every resource requested by the process is avaliable
 
@@ -53,5 +53,3 @@ class ResourceManager:
             self.resources['modem'] = 1
         if process.disk_id != 0:
             self.resources['drivers'][process.disk_id] = 1
-    
-            
