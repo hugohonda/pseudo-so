@@ -1,4 +1,4 @@
-from modules import ProcessManager, process_parser, read_files_file
+from modules import ProcessManager, process_parser, read_files_file, DiskManager
 from modules.resource_manager import ResourceManager
 
 import time
@@ -19,6 +19,42 @@ def correct_format(input_files):
     """
     return '.txt' in input_files[0] and '.txt' in input_files[1]
 
+def disk(dm, i, op):
+    op_result, others = dm.process(op);
+    if      (op_result == 0):
+        print ("Operação " + str(i) + " => Falha");
+        print ("O arquivo " + op[2] + " já existe.");
+
+    elif    (op_result == 1):
+        print ("Operação " + str(i) + " => Sucesso"); 
+        print ("O processo " + op[0] + " criou o arquivo " + op[2] + " (blocos " + others[:-2] + ").");
+
+    elif    (op_result == 2):
+        print ("Operação " + str(i) + " => Falha");
+        print ("O processo " + op[0] + " não pode criar o arquivo " + op[2] +" (falta de espaço).");
+
+    elif    (op_result == 3):
+        print ("Operação " + str(i) + " => Falha");
+        print ("O arquivo " + op[2] + " não existe.");
+
+    elif    (op_result == 4):
+        print ("Operação " + str(i) + " => Sucesso");
+        print ("O processo " + op[0] + " deletou o arquivo " + op[2] + ".");
+
+    elif    (op_result == 5):
+        print ("Operação " + str(i) + " => Falha");
+        print ("O processo " + op[0] + " não pode deletar o arquivo " + op[2] + ".");
+
+    elif    (op_result == 6):
+        print ("Operação " + str(i) + " => Falha");
+        print ("Não existe o arquivo " + op[2] +  ".");
+
+    elif    (op_result == 7):
+        print ("Operação " + str(i) + " => Inválida");
+        print ("Não existe o código de operação " + op[1] +  ".");    
+
+
+
 def main(input_files):
     """Pseudo operation system main function.
 
@@ -33,13 +69,13 @@ def main(input_files):
         sys.exit()
     # init Disk
     n_blocks, files, operations = read_files_file(input_files[1])
+    dm = DiskManager(n_blocks, files, operations);
     # init resources
     
 
     # OS BOOT TIME ---------------
     # read processes to execute
     processes = process_parser(input_files[0])
-    
 
     # OS SIMULATION ---------------
     counter = 0  # starts cpu time
@@ -61,7 +97,9 @@ def main(input_files):
     # fs.start()
 
     ResourceManager()
-    
+
+    for i, op in enumerate(operations):
+        disk(dm, i, op);    
 
 
 if __name__ == '__main__':

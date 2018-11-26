@@ -99,9 +99,6 @@ def read_files_file(filename):
             line = line.split(', ')
             if len(line) == 3:
                 line.append('0')
-            operations.append({'id': line[0],
-                                'code': line[1],
-                                'name': line[2],
-                                'blocks': line[3]})
+            operations.append(line)
 
     return n_blocks, files, operations
