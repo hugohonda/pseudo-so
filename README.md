@@ -32,3 +32,8 @@ python dispatcher.py data/processes.txt data/files.txt
 	- Registry: 13/0138002
 	- E-mail:
 	- GitHub: [](https://github.com/)
+
+- Gabriel Tollini
+	- Registry: 14/0020454	
+	- E-mail: gabrieltollini@hotmail.com
+	- GitHub: [gtollini](https://github.com/gtollini)
