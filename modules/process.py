@@ -2,7 +2,6 @@ from .resources import ResourceManager
 from .memory import MemoryManager
 from .queues import QueueManager
 
-import time
 
 class Process:
     """Process entity.
@@ -39,15 +38,33 @@ class Process:
 class ProcessManager:
     """Pseudo OS process manager.
 
-    Manage resources, memory, queues and disk according to each process demand.
+    Manage resources, memory and priorities queues according to each process
+    demand.
     """
     def __init__(self):
-        self.curr_pid = 0
         self.system_clock = 0
-        self.mem_m = MemoryManager()
-        self.res_m = ResourceManager()
-        self.q_m = QueueManager()
         self.curr_proc = None
+        self.curr_pid = 0
+
+        # managers
+        self.res_m = ResourceManager()
+        self.mem_m = MemoryManager()
+        self.q_m = QueueManager()
+
+    def process_status(self, pid):
+        """Process status.
+
+        Args:
+            pid (`int`) Process id to search.
+        Returns:
+            0 if the process never existed, 1 if the process is running,
+            2 if the process existed and finished its execution.
+        """
+        if self.curr_proc is not None and self.curr_proc.pid == pid:
+            return 1
+        if pid >= self.curr_pid:
+            return 0
+        return 2
 
     def new_process(self, process_desc):
         """Try to creates a process.
@@ -84,6 +101,9 @@ class ProcessManager:
 
     def empty(self):
         """Check if there are no process running.
+
+        Returns:
+            ``True`` if there are no current process, ``False`` otherwise.
         """
         return self.curr_proc is None
 
@@ -95,8 +115,8 @@ class ProcessManager:
             occurred during execution or there are no process to execute.
         """
         self.system_clock += 1
-        if self.curr_proc is None:
-            if self.next_process() is None:
+        if self.curr_proc is None:  # there are no process running
+            if self.next_process() is None:  # try catch next process
                 return False
         else:  # continue execution
             # execute instruction

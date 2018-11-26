@@ -1,69 +1,212 @@
+STATUS_OP = lambda id, status, info: f'Operação {id} => {status}\n{info}\n'
+
+
 class DiskManager:
-	"""Pseudo OS disk manager
+	"""Pseudo OS disk manager.
 
-    Args:
-        n_blocks 	(`int`) Number of available blocks
-        files		(`list`) Pre-allocated blocks
-        operations	(`list`) operations to be processed
-    """
-	def __init__(self, n_blocks, files, operations):
-		self.blocks = ['0']*n_blocks
-		self.owner  = ['0']*n_blocks
-		self.size 	= [0]*n_blocks
+	Args:
+		disk_info (`dict`) Disk status and processes operations. Contains
+		number of available blocks, pre-allocated blocks and operations to
+		be processed.
+		pm (:obj: ProcessManager) ProcessManager entity.
+	"""
+	def __init__(self, disk_info, pm):
+		self.pm = pm
+		self.disk = [0]*disk_info['blocks']
+		self.disk_length = disk_info['blocks']
+		self.operations = disk_info['operations']
+		self.logging = {}
 
+		for f in disk_info['files']:
+			f_block, blocks = int(f[1]), int(f[2])
+			self.disk_length -= blocks
+			base = lambda n: {'owner': -1, 'name': n}
+			self.disk[f_block:f_block+blocks] = blocks*[base(f[0])]
 
-		for file in files:
-			for i in range(int(file[1]), int(file[1])+int(file[2])):
-				self.blocks[i] =  file[0]
-				self.size[int(file[1])] = int(file[2])
-		self.operations = operations
+	def empty(self):
+		"""Checks if all operations was executed.
 
-	def create(self, op):
-		space = ''
-		for j in range(0,int(op[3])):
-			space = space + '0'
+		Returns:
+			``True`` if there are no operation to operate anymore,
+			``False`` otherwise.
+		"""
+		return len(self.operations) == 0
 
-		allocation_add = ''.join(self.blocks).find(space)
-		if (allocation_add != -1):
-			
-			self.size[allocation_add] = int(op[3])
-			add = ''
-			for k in range(allocation_add, allocation_add+int(op[3])):
-				add = add + str(k) + ', '
-				self.blocks[k] 	= op[2]
-				self.owner[k]	= op[0]
-			return 1, add
+	def find_owner(self, filename):
+		"""Finds file's creator if file exists on disk.
 
-		else:
-			return 2, ''
-	
-	def delete(self, op):		
-		delete_add = ''.join(self.blocks).find(op[2])
-		if (delete_add!= -1):
-			if (self.owner[delete_add]=='0' or self.owner[delete_add]==op[0]):
-				for l in range(delete_add, delete_add+self.size[delete_add]):
-					self.blocks[l] 	= '0'
-					self.owner[l]	= '0'
-				self.size[delete_add] = 0
-				return 4, ''
+		Args:
+			filename (`str`) Name of the file to be fetched on disk.
+		Returns:
+			-1 file's creator was not found, otherwise file's creator pid.
+		"""
+		for d in self.disk:
+			if d and d['name'] == filename:
+				return d['owner']
+		return -1
 
-			else: 
-				return 5, ''
-		else:
-			return 6
+	def check_permissions(self, op):
+		"""Check process permissions.
 
-	def process(self, op):
-		if (op[1]=='0'):
-			if (op[2] in self.blocks):
-				return 0,''
-			else:	
-				return self.create(op)
+		Real-time processes can create/delete any file. User processes can
+		delete only processes that were created by them.
 
-		elif (op[1] == '1'):
-			if (op[2] not in self.blocks):
-				return 3, ''
-			else:
-				return self.delete(op)	
-		else:
-			return 7, ''
-		return 0,''		
+		Args:
+			op (`dict`) Operation details.
+		Returns:
+			``True`` if process can operate on the disk, ``False`` otherwise.
+		"""
+		# delete operation
+		if op['op'] and self.find_owner(op['filename']) == op['pid']:
+			return False
+		return True
+
+	def file_exists(self, filename):
+		"""Checks if file already exists in disk.
+
+		Args:
+			filename (`str`) Name of the file to be fetched on disk.
+		Returns:
+			``True`` if file exists, ``False`` otherwise.
+		"""
+		for d in self.disk:
+			if d and d['name'] == filename:
+				return True
+		return False
+
+	def log(self, oid, info, fail=True):
+		"""Push log message.
+
+		Args:
+			oid (`int`) Operation id.
+			info (`str`) Operation detail.
+			fail (`bool`) Indicates if operation has failed.
+		"""
+		status = 'Falha' if fail else 'Sucesso'
+		self.logging[oid] = STATUS_OP(oid, status, info)
+
+	def next(self):
+		"""Run next disk operation.
+
+		Every operation status is logged. At the end of pseudo OS simulation
+		the logging will be shown.
+		"""
+		if self.empty():
+			return False
+		curr_op = self.operations.pop(0)
+		status = self.pm.process_status(curr_op['pid'])  # find process status
+		if status == 0:
+			info = 	f"Não existe o processo {curr_op['pid']}."
+			self.log(curr_op['id'], info)
+			return False
+		if status == 2:
+			info = 	f"O processo {curr_op['pid']} já encerrou o seu tempo " \
+					 "de processamento.."
+			self.log(curr_op['id'], info)
+			return False
+
+		# process is running, checks its permissions
+		if not self.check_permissions(curr_op):
+			info = 	f"O processo {curr_op['pid']} não pode deletar o arquivo" \
+					f" {curr_op['filename']}."
+			self.log(curr_op['id'], info)
+			return False
+
+		if not curr_op['op']:  # create file operation
+			if self.file_exists(curr_op['filename']):
+				info = 	f"O arquivo {curr_op['filename']} já existe.."
+				self.log(curr_op['id'], info)
+				return False
+
+			# checks if there are space to allocate the file
+			first_block = self.is_space(curr_op)
+			if curr_op['blocks'] > self.disk_length or first_block == -1:
+				info = 	f"O processo {curr_op['pid']} não pode criar o " \
+						f"arquivo {curr_op['filename']} (falta de espaço)."
+				self.log(curr_op['id'], info)
+				return False
+
+			blocks = self.allocate(curr_op, first_block)
+			info = 	f"O processo {curr_op['pid']} criou o arquivo " \
+					f"{curr_op['filename']} (blocos {' ,'.join(blocks)})."
+			self.log(curr_op['id'], info, fail=False)
+			return True
+
+		if curr_op['op']:  # delete file operation
+			if not self.file_exists(curr_op['filename']):
+				info = 	f"O arquivo {curr_op['filename']} não existe para " \
+						 "ser deletado.."
+				self.log(curr_op['id'], info)
+				return False
+
+			self.free(curr_op)
+			info = 	f"O processo {curr_op['pid']} deletou o arquivo " \
+					f"{curr_op['filename']}."
+			self.log(curr_op['id'], info, fail=False)
+			return True
+
+	def is_space(self, op):
+		"""Check if there are contiguous space to allocate the file.
+
+		First fit technique.
+
+		Args:
+			op (`dict`) Operation details.
+		Returns:
+			``int`` that indicates the first block to allocate that file.
+			-1 if there are no contiguous space to allocate that file.
+		"""
+		base, limit = 0, len(self.disk)
+		# try to find place to allocate the file
+		while base <= limit:
+			free_b = 0  # possible blocks to allocation
+			last_base = base
+			while not self.disk[base]:
+				free_b += 1
+				base += 1
+				if free_b == op['blocks']:
+					break
+
+			# enough blocks to allocate the process
+			if free_b == op['blocks']:
+				return last_base
+
+			if base <= limit:
+				base += 1
+		return -1
+
+	def allocate(self, op, first_block):
+		"""Allocate file in the disk.
+
+		First fit technique.
+
+		Args:
+			op (`dict`) Operation details.
+			first_block (`int`) First block to start allocate the file.
+		Returns:
+			``list`` of ``int`` that indicates the blocks positions allocated
+			to that file.
+		"""
+		info = {'owner': op['pid'], 'name': op['filename']}
+		self.disk_length -= op['blocks']
+		self.disk[first_block:first_block+op['blocks']] = info
+		return list(map(lambda x: str(x),
+						range(first_block, first_block+op['blocks'])))
+
+	def free(self, op):
+		"""Delete file.
+
+		Args:
+			op (`dict`) Operation details.
+		"""
+		for i, d in enumerate(self.disk):
+			if d and d['name'] == op['filename']:
+				idx = i
+		self.disk[i] = 0
+		self.disk_length += op['blocks']
+
+	def show_logging(self):
+		"""Show disk manager logging.
+		"""
+		for lid, msg in self.logging.items():
+			print(msg)

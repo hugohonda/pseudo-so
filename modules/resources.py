@@ -28,7 +28,10 @@ class ResourceManager:
            self.resources['drivers'][process_desc.disk_id]:
            error_msgs.append(base_msg(f'drive {process_desc.disk_id}'))
 
-        if not process_desc['priority']:
+        if not process_desc['priority'] and \
+           (process_desc['scanner_req'] or process_desc['modem_req'] or
+            process_desc['printer_id'] == 1 or process_desc['printer_id'] or
+            process_desc['disk_id'] == 1 or process_desc['disk_id'] == 2):
             error_msgs.append('Real-time processes cannot allocate resources.')
 
         if error_msgs:

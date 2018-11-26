@@ -1,6 +1,5 @@
-from modules import ProcessManager, process_parser, disk_info_parser, \
-                    DiskManager
-
+from modules import ProcessManager, DiskManager, process_parser, \
+                    disk_info_parser
 import sys
 
 
@@ -13,34 +12,6 @@ def correct_format(input_files):
         input_files (`list`) Files with path and filename.
     """
     return '.txt' in input_files[0] and '.txt' in input_files[1]
-
-
-def disk(dm, i, op):
-    op_result, others = dm.process(op)
-    if op_result == 0:
-        print ('Operação ' + str(i) + ' => Falha')
-        print ('O arquivo ' + op[2] + ' já existe.\n')
-    elif op_result == 1:
-        print ('Operação ' + str(i) + ' => Sucesso')
-        print ('O processo ' + op[0] + ' criou o arquivo ' + op[2] + ' (blocos ' + others[:-2] + ').\n')
-    elif op_result == 2:
-        print ('Operação ' + str(i) + ' => Falha')
-        print ('O processo ' + op[0] + ' não pode criar o arquivo ' + op[2] +' (falta de espaço).\n')
-    elif op_result == 3:
-        print ('Operação ' + str(i) + ' => Falha')
-        print ('O arquivo ' + op[2] + ' não existe.\n')
-    elif op_result == 4:
-        print ('Operação ' + str(i) + ' => Sucesso')
-        print ('O processo ' + op[0] + ' deletou o arquivo ' + op[2] + '.\n')
-    elif op_result == 5:
-        print ('Operação ' + str(i) + ' => Falha')
-        print ('O processo ' + op[0] + ' não pode deletar o arquivo ' + op[2] + '.\n')
-    elif op_result == 6:
-        print ('Operação ' + str(i) + ' => Falha')
-        print ('Não existe o arquivo ' + op[2] +  '.\n')
-    elif op_result == 7:
-        print ('Operação ' + str(i) + ' => Inválida')
-        print ('Não existe o código de operação ' + op[1] +  '.\n')
 
 
 def main(input_files):
@@ -59,18 +30,16 @@ def main(input_files):
     # OS BOOT TIME ---------------
     # read processes to execute
     processes = process_parser(input_files[0])
-    processes_executions = [0]*len(processes)
-    for p in processes:
-        processes_executions[int(p['pid'])] = int(p['cpu_time'])
     # read disk files and operations
-    n_blocks, files, operations = disk_info_parser(input_files[1])
-    dm = DiskManager(n_blocks, files, operations)
+    disk_info = disk_info_parser(input_files[1])
 
     # OS SIMULATION ---------------
     counter = 0  # starts cpu time
     pm = ProcessManager()  # starts process manager
-    # while there are processes to simulate, pseudo OS continue execution
-    while processes or not pm.empty():
+    dm = DiskManager(disk_info, pm)  # starts disk manager
+    # while there are processes to simulate and disk operations,
+    # pseudo OS continue execution
+    while processes or not pm.empty() or not dm.empty():
         print(f'---- Pseudo OS timer: {counter}')
         # execute process when boot time arrive
         if len(processes) and processes[0]['boot_time'] <= counter:
@@ -79,20 +48,11 @@ def main(input_files):
             pm.new_process(curr_proc)  # creates process
 
         pm.next()  # run OS pc
+        dm.next()  # run disk operation
         counter += 1  # increase cpu time
 
     print('\nSistema de arquivos =>')
-    for i, op in enumerate(operations):
-        if int(op[0]) >= len(processes_executions) and int(op[0]) > 0:
-            print ('Operação ' + str(i) + ' => Falha')
-            print ('Não existe o processo ' + op[0] +  '.\n')
-        elif processes_executions[int(op[0])] == 0:
-            print ('Operação ' + str(i) + ' => Falha')
-            print ('O processo ' + op[0] + ' já encerrou o seu tempo de processamento.\n')
-
-        else:
-            processes_executions[int(op[0])] = processes_executions[int(op[0])] - 1
-            disk(dm, i, op)
+    dm.show_logging()
 
 
 if __name__ == '__main__':

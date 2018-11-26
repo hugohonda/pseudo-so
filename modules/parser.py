@@ -77,7 +77,7 @@ def disk_info_parser(filename):
                          each with one file details; and lines in each with
                          one operation details.
     Returns:
-        `tuple` of (`int`, `list`, `list`). Number of blocks,
+        `dict` of (`int`, `list`, `list`). Number of blocks,
         list of files (`list` of `str`) and list of operations
         (`list` of `dict`).
     """
@@ -91,10 +91,12 @@ def disk_info_parser(filename):
 
     files = [f.replace(',', '').split(' ') for f in file_data[2:n_segments+2]]
     operations = []
-    for line in file_data[n_segments+2:]:
+    for it, line in enumerate(file_data[n_segments+2:]):
         line = line.replace(',', '').split(' ')
         if len(line) == 3:
             line.append(0)
-        operations.append(line)
+        info = {'id': it, 'pid': int(line[0]), 'op': int(line[1]),
+                'filename': line[2], 'blocks': int(line[3])}
+        operations.append(info)
 
-    return n_blocks, files, operations
+    return {'blocks': n_blocks, 'files': files, 'operations': operations}
