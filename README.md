@@ -30,5 +30,10 @@ python dispatcher.py data/processes.txt data/files.txt
 
 - William Simião
 	- Registry: 13/0138002
-	- E-mail: williamsimiao@gmail.com
-	- GitHub: [williamsimiao](https://github.com/williamsimiao)
+	- E-mail:
+	- GitHub: [](https://github.com/)
+
+- Gabriel Tollini
+	- Registry: 14/0020454	
+	- E-mail: gabrieltollini@hotmail.com
+	- GitHub: [gtollini](https://github.com/gtollini)
