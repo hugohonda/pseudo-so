@@ -66,6 +66,9 @@ def main(input_files):
     # OS BOOT TIME ---------------
     # read processes to execute
     processes = process_parser(input_files[0])
+    processes_executions = [0]*len(processes)
+    for p in processes:
+        processes_executions[int(p['pid'])] = int(p['cpu_time'])
     # read disk files and operations
     n_blocks, files, operations = disk_info_parser(input_files[1])
     dm = DiskManager(n_blocks, files, operations)
@@ -86,7 +89,17 @@ def main(input_files):
         counter += 1  # increase cpu time
 
     for i, op in enumerate(operations):
-        disk(dm, i, op)
+        print ()
+        if (int(op[0]) >= len(processes_executions) and int(op[0]) > 0): 
+            print ("Operação " + str(i) + " => Falha")
+            print ("Não existe o processo " + op[0] +  ".")
+        elif (processes_executions[int(op[0])] == 0):
+            print ("Operação " + str(i) + " => Falha")
+            print ("O processo " + op[0] + " já encerrou o seu tempo de processamento.")
+
+        else:
+            processes_executions[int(op[0])] = processes_executions[int(op[0])] - 1    
+            disk(dm, i, op)    
 
 
 if __name__ == '__main__':
