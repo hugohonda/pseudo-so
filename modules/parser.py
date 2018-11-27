@@ -16,7 +16,7 @@ def process_parser(filename):
                         line.strip().replace(',', '').split(' '),
                         len(processes)))
             except ValueError as err:
-                print('ERROR: The process couldn\'t be started due to :'
+                print('ERROR: The process couldn\'t be started due to : '
                       f'{err}')
 
     # sort by processes boot time
@@ -38,21 +38,25 @@ def mount_process(process_desc, new_pid):
     """
     fields = ['boot_time', 'priority', 'cpu_time', 'blocks',
               'printer_id', 'scanner_req', 'modem_req', 'disk_id']
-    process_info = {k: int(v) for k,v in zip(fields, process_desc)}
-
-    if check_valid_params(process_info):
-        process_info['pid'] = new_pid
-        if process_info['disk_id']:
-            process_info['disk_id'] -= 1
-        if process_info['printer_id']:
-            process_info['printer_id'] -= 1
-        return process_info
-    else:
-        raise ValueError('Incomplete params to start a process.'
-              'It should be informed 8 params: boot_time, priority, '
-              'cpu_time, blocks, printer_id, scanner_req, modem_req and '
-              'disk_id separated with comma.')
-
+    process_info = {k: int(v) for k, v in zip(fields, process_desc)}
+    print(process_info)
+    result = False
+    try:
+        result = check_valid_params(process_info)
+        if result:
+            process_info['pid'] = new_pid
+            if process_info['disk_id']:
+                process_info['disk_id'] -= 1
+            if process_info['printer_id']:
+                process_info['printer_id'] -= 1
+            return process_info
+        else:
+            raise ValueError('Incomplete params to start a process.'
+                'It should be informed 8 params: boot_time, priority, '
+                'cpu_time, blocks, printer_id, scanner_req, modem_req and '
+                'disk_id separated with comma.')
+    except Exception as e:
+        raise e
 
 def check_valid_params(process_info):
     """Checks if all params informed is valid.
@@ -65,6 +69,14 @@ def check_valid_params(process_info):
         ``True`` if all params is valid, ``False`` otherwise.
     """
     id_range = range(3)
+    if not process_info['printer_id'] in id_range:
+        raise ValueError(f"Invalid Printer ID ( {process_info['printer_id']} ), please choose a value between 0 and 2")
+    if not process_info['disk_id'] in id_range:
+        raise ValueError(f"Invalid Disk ID ( {process_info['disk_id']} ), please choose a value between 0 and 2")
+    if not process_info['scanner_req'] in id_range[:2]:
+        raise ValueError(f"Invalid Scanner ( {process_info['scanner_req']} ), please choose a value between 0 and 1")
+    if not process_info['modem_req'] in id_range[:2]:
+        raise ValueError(f"Invalid Modem ( {process_info['modem_req']} ), please choose a value between 0 and 1")
     return len(process_info) == 8 and \
            process_info['printer_id'] in id_range and \
            process_info['disk_id'] in id_range and \
