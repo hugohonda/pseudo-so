@@ -39,7 +39,6 @@ def mount_process(process_desc, new_pid):
     fields = ['boot_time', 'priority', 'cpu_time', 'blocks',
               'printer_id', 'scanner_req', 'modem_req', 'disk_id']
     process_info = {k: int(v) for k, v in zip(fields, process_desc)}
-    print(process_info)
     result = False
     try:
         result = check_valid_params(process_info)
