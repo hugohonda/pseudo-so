@@ -15,6 +15,9 @@ class PriorityEntry:
     def __lt__(self, other):
         return self.priority < other.priority
 
+    def __str__(self):
+        return f'{self.data.pid} : {self.priority}'
+
 
 class QueueManager(Queue):
     """Pseudo OS queue manager.
