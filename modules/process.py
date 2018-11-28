@@ -45,6 +45,9 @@ class ProcessManager:
         self.system_clock = 0
         self.curr_proc = None
         self.curr_pid = 0
+        # old processes that contains processes that runned with
+        # success and their number of operations available
+        self.old_procs = {}
 
         # managers
         self.res_m = ResourceManager()
@@ -134,6 +137,9 @@ class ProcessManager:
                 self.curr_proc.pc = limit_time
                 self.mem_m.clean(self.curr_proc)  # free memory
                 self.res_m.free(self.curr_proc)  # free resources
+                self.old_procs[self.curr_proc.pid] = {
+                                        'itr': self.curr_proc.cpu_time,
+                                        'priority': self.curr_proc.priority}
                 self.next_process()
                 return True
 

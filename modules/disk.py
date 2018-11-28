@@ -87,65 +87,70 @@ class DiskManager:
 		status = 'Falha' if fail else 'Sucesso'
 		self.logging[oid] = STATUS_OP(oid, status, info)
 
-	def next(self):
-		"""Run next disk operation.
+	def run(self):
+		"""Run disk operations.
 
 		Every operation status is logged. At the end of pseudo OS simulation
 		the logging will be shown.
 		"""
-		if self.empty():
-			return False
-		curr_op = self.operations.pop(0)
-		status = self.pm.process_status(curr_op['pid'])  # find process status
-		if status == 0:
-			info = 	f"Não existe o processo {curr_op['pid']}."
-			self.log(curr_op['id'], info)
-			return False
-		if status == 2:
-			info = 	f"O processo {curr_op['pid']} já encerrou o seu tempo " \
-					 "de processamento.."
-			self.log(curr_op['id'], info)
-			return False
+		all_processes = self.pm.old_procs
 
-		# process is running, checks its permissions
-		if not self.check_permissions(curr_op, self.pm.curr_proc.priority):
-			info = 	f"O processo {curr_op['pid']} não pode deletar o arquivo" \
-					f" {curr_op['filename']}."
-			self.log(curr_op['id'], info)
-			return False
-
-		if not curr_op['op']:  # create file operation
-			if self.file_exists(curr_op['filename']):
-				info = 	f"O arquivo {curr_op['filename']} já existe.."
+		for curr_op in self.operations:
+			if curr_op['pid'] not in all_processes.keys():
+				info = 	f"Não existe o processo {curr_op['pid']}."
 				self.log(curr_op['id'], info)
-				return False
-
-			# checks if there are space to allocate the file
-			first_block = self.is_space(curr_op)
-			if curr_op['blocks'] > self.disk_length or first_block == -1:
-				info = 	f"O processo {curr_op['pid']} não pode criar o " \
-						f"arquivo {curr_op['filename']} (falta de espaço)."
+				continue
+			if not all_processes[curr_op['pid']]['itr']:
+				info = 	f"O processo {curr_op['pid']} já encerrou o seu tempo " \
+						 "de processamento.."
 				self.log(curr_op['id'], info)
-				return False
+				continue
 
-			blocks = self.allocate(curr_op, first_block)
-			info = 	f"O processo {curr_op['pid']} criou o arquivo " \
-					f"{curr_op['filename']} (blocos {' ,'.join(blocks)})."
-			self.log(curr_op['id'], info, fail=False)
-			return True
-
-		if curr_op['op']:  # delete file operation
-			if not self.file_exists(curr_op['filename']):
-				info = 	f"O arquivo {curr_op['filename']} não existe para " \
-						 "ser deletado.."
+			# process is running, checks its permissions
+			if not self.check_permissions(curr_op,
+										  all_processes[curr_op['pid']]['priority']):
+				info = 	f"O processo {curr_op['pid']} não pode deletar o arquivo" \
+						f" {curr_op['filename']}."
 				self.log(curr_op['id'], info)
-				return False
+				all_processes[curr_op['pid']]['itr'] -= 1
+				continue
 
-			self.free(curr_op)
-			info = 	f"O processo {curr_op['pid']} deletou o arquivo " \
-					f"{curr_op['filename']}."
-			self.log(curr_op['id'], info, fail=False)
-			return True
+			if not curr_op['op']:  # create file operation
+				if self.file_exists(curr_op['filename']):
+					info = 	f"O arquivo {curr_op['filename']} já existe.."
+					self.log(curr_op['id'], info)
+					all_processes[curr_op['pid']]['itr'] -= 1
+					continue
+
+				# checks if there are space to allocate the file
+				first_block = self.is_space(curr_op)
+				if curr_op['blocks'] > self.disk_length or first_block == -1:
+					info = 	f"O processo {curr_op['pid']} não pode criar o " \
+							f"arquivo {curr_op['filename']} (falta de espaço)."
+					self.log(curr_op['id'], info)
+					all_processes[curr_op['pid']]['itr'] -= 1
+					continue
+
+				blocks = self.allocate(curr_op, first_block)
+				info = 	f"O processo {curr_op['pid']} criou o arquivo " \
+						f"{curr_op['filename']} (blocos {' ,'.join(blocks)})."
+				self.log(curr_op['id'], info, fail=False)
+				all_processes[curr_op['pid']]['itr'] -= 1
+				continue
+
+			if curr_op['op']:  # delete file operation
+				if not self.file_exists(curr_op['filename']):
+					info = 	f"O arquivo {curr_op['filename']} não existe para " \
+							 "ser deletado.."
+					self.log(curr_op['id'], info)
+					all_processes[curr_op['pid']]['itr'] -= 1
+					continue
+
+				self.free(curr_op)
+				info = 	f"O processo {curr_op['pid']} deletou o arquivo " \
+						f"{curr_op['filename']}."
+				self.log(curr_op['id'], info, fail=False)
+				all_processes[curr_op['pid']]['itr'] -= 1
 
 	def is_space(self, op):
 		"""Check if there are contiguous space to allocate the file.

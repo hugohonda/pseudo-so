@@ -39,7 +39,7 @@ def main(input_files):
     dm = DiskManager(disk_info, pm)  # starts disk manager
     # while there are processes to simulate and disk operations,
     # pseudo OS continue execution
-    while processes or not pm.empty() or not dm.empty():
+    while processes or not pm.empty():
         print(f'---- Pseudo OS timer: {counter}')
         # execute process when boot time arrive
         if len(processes) and processes[0]['boot_time'] <= counter:
@@ -48,9 +48,9 @@ def main(input_files):
             pm.new_process(curr_proc)  # creates process
 
         pm.next()  # run OS pc
-        dm.next()  # run disk operation
         counter += 1  # increase cpu time
 
+    dm.run()   # run disk operations
     print('\nSistema de arquivos =>')
     dm.show_logging()
     dm.show_disk()
